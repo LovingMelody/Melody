@@ -62,9 +62,12 @@ fn main() {
 fn play_test(music_dir: PathBuf) {
     let mut mp =
         MusicPlayer::new(Playlist::from_dir(music_dir).expect("Failed to make playlist from dir"));
+    println!("{}", mp);
     mp.start().expect("Failed to start music player");
+    println!("{}", mp);
     mp.lock();
     while !mp.queue().is_empty() {
+        println!("{}", mp.status());
         mp.play_next();
         mp.lock();
     }
