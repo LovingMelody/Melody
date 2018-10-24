@@ -439,7 +439,7 @@ dependencies = [
 
 [[package]]
 name = "melody"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "cute 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "directories 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
