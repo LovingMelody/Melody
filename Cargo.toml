@@ -1,7 +1,7 @@
 [package]
 authors = ["Fuzen <fuzen@protonmail.com>"]
 name = "melody"
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT/Apache-2.0"
 description = "terminal Audio playback client"
 
@@ -11,7 +11,7 @@ path = "bin/melody/main.rs"
 required-features = []
 
 [dependencies]
-config = "0.9.1"
+# config = "0.9.1"
 cute = "0.3.0"
 mp3-metadata = "0.3.0"
 num-integer = "0.1.39"
@@ -22,3 +22,4 @@ directories = "1.0.2"
 # indicatif = {git="https://github.com/mitsuhiko/indicatif.git"}
 indicatif = "0.9.0"
 rand = "0.5.5"
+human-panic = "1.0.1"

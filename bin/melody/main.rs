@@ -1,33 +1,32 @@
 // TODO: Fix Config file
 // TODO: Iterm display for album cover? (probably not)
 // TODO: Media Controls
-extern crate config;
 extern crate directories;
 extern crate indicatif;
 extern crate melody;
+#[macro_use]
+extern crate human_panic;
 use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 
 use directories::ProjectDirs;
 use indicatif::{ProgressBar, ProgressStyle};
-use std::collections::HashMap;
 
 use melody::*;
 
+#[allow(unused)]
 fn project_dir() -> Result<ProjectDirs, Errors> {
     ProjectDirs::from("info", "Fuzen", "Melody").ok_or(Errors::FailedToGetAppDirectory)
 }
 
 #[derive(Debug)]
 enum Errors {
-    NoConfig,
     FailedToGetAppDirectory,
     FailedToGetUserDir,
     FailedToGetAudioDir,
-    FailedConfigMergeWithEnvironment,
-    FailedToParseSettings,
 }
+
 fn generate_progress_bar(s: Song) -> ProgressBar {
     let pb = ProgressBar::new(s.duration.as_secs());
     pb.set_style(
@@ -45,43 +44,8 @@ fn generate_progress_bar(s: Song) -> ProgressBar {
     pb
 }
 
-fn get_settings() -> Result<std::collections::HashMap<String, String>, Errors> {
-    let project_dir = project_dir()?;
-    let config_dir = project_dir.config_dir().to_owned();
-
-    let mut config_file = config_dir.clone();
-    config_file.push("Config.toml");
-    if !&config_file.exists() {
-        return Err(Errors::NoConfig);
-    }
-    config::Config::default()
-        .merge(config::File::with_name(
-            config_file
-                .to_str()
-                .ok_or(Errors::FailedToGetAppDirectory)?,
-        )).map_err(|_| Errors::FailedToParseSettings)
-        .and_then(|settings| {
-            settings
-                .merge(config::Environment::with_prefix("MELODY_"))
-                .map_err(|_| Errors::FailedConfigMergeWithEnvironment)
-        }).and_then(|s| {
-            s.clone()
-                .try_into::<HashMap<String, String>>()
-                .map_err(|_| Errors::FailedToParseSettings)
-        })
-}
-
 fn main() {
-    println!("{:?}", project_dir().unwrap().config_dir());
-    if let Ok(settings) = get_settings() {
-        if let Some(music_dir) = settings.get("MUSIC") {
-            play_test(PathBuf::from(music_dir))
-        } else {
-            let mut config_file = project_dir().unwrap().config_dir().to_owned();
-            config_file.push("Config.toml");
-            println!("No music dir in {:?}", config_file);
-        }
-    } else {
+    setup_panic!();
         let music_dir = ::std::env::var("MELODY_MUSIC")
             .and_then(|v| Ok(PathBuf::from(v)))
             .unwrap_or(
@@ -95,20 +59,26 @@ fn main() {
                     }).unwrap(),
             );
         println!(
-            "Failed to get settings, defaulting to {}",
-            music_dir.to_str().unwrap()
+            "Looking for music in {}",
+            music_dir.to_str().unwrap_or("your os's default music dir")
         );
         if !music_dir.exists() {
             println!("Directory does not exist, exiting...");
             return ();
         }
         play_test(music_dir)
-    }
 }
 
 fn play_test(music_dir: PathBuf) {
-    let mut mp =
-        MusicPlayer::new(Playlist::from_dir(music_dir).expect("Failed to make playlist from dir"));
+    let playlist = match Playlist::from_dir(music_dir.clone()) {
+        None => {
+            println!("Failed to create playlist from {}. Exiting...", music_dir.to_str().unwrap_or("Music dir"));
+            return;
+        },
+        Some(pl) => pl
+    };
+    drop(music_dir);
+    let mut mp = MusicPlayer::new(playlist);
     mp.shuffle();
     println!("{}", mp);
     mp.start().expect("Failed to start music player");
