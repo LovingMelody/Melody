@@ -46,39 +46,60 @@ fn generate_progress_bar(s: Song) -> ProgressBar {
 
 fn main() {
     setup_panic!();
-        let music_dir = ::std::env::var("MELODY_MUSIC")
-            .and_then(|v| Ok(PathBuf::from(v)))
-            .unwrap_or(
-                directories::UserDirs::new()
-                    .ok_or(Errors::FailedToGetUserDir)
-                    .and_then(|user_dir| {
-                        user_dir
-                            .audio_dir()
-                            .ok_or(Errors::FailedToGetAudioDir)
-                            .and_then(|audio_dir| Ok(audio_dir.to_owned()))
-                    }).unwrap(),
-            );
-        println!(
-            "Looking for music in {}",
-            music_dir.to_str().unwrap_or("your os's default music dir")
+    let music_dir = ::std::env::var("MELODY_MUSIC")
+        .and_then(|v| Ok(PathBuf::from(v)))
+        .unwrap_or(
+            directories::UserDirs::new()
+                .ok_or(Errors::FailedToGetUserDir)
+                .and_then(|user_dir| {
+                    user_dir
+                        .audio_dir()
+                        .ok_or(Errors::FailedToGetAudioDir)
+                        .and_then(|audio_dir| Ok(audio_dir.to_owned()))
+                }).unwrap(),
         );
-        if !music_dir.exists() {
-            println!("Directory does not exist, exiting...");
-            return ();
-        }
-        play_test(music_dir)
+    println!(
+        "Looking for music in {}",
+        music_dir.to_str().unwrap_or("your os's default music dir")
+    );
+    if !music_dir.exists() {
+        println!("Directory does not exist, exiting...");
+        return ();
+    }
+    play_test(music_dir)
 }
 
 fn play_test(music_dir: PathBuf) {
     let playlist = match Playlist::from_dir(music_dir.clone()) {
         None => {
-            println!("Failed to create playlist from {}. Exiting...", music_dir.to_str().unwrap_or("Music dir"));
-            return;
-        },
-        Some(pl) => pl
+            println!(
+                "Failed to create playlist from {}.",
+                music_dir.to_str().unwrap_or("Music dir")
+            );
+            println!("Attempting to use cwd");
+            match ::std::env::current_dir() {
+                Ok(cwd) => match Playlist::from_dir(cwd) {
+                    Some(pl) => pl,
+                    None => {
+                        println!("Failed");
+                        return;
+                    }
+                },
+                Err(_) => {
+                    println!("Failed to get cwd");
+                    return;
+                }
+            }
+        }
+        Some(pl) => pl,
     };
     drop(music_dir);
     let mut mp = MusicPlayer::new(playlist);
+    let volume: f32 = ::std::env::var("MELODY_VOLUME")
+        .ok()
+        .and_then(|v| v.parse::<f32>().ok())
+        .unwrap_or(0.5);
+    mp.set_volume(volume);
     mp.shuffle();
     println!("{}", mp);
     mp.start().expect("Failed to start music player");
