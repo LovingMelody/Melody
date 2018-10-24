@@ -2,6 +2,8 @@
 authors = ["Fuzen <fuzen@protonmail.com>"]
 name = "melody"
 version = "0.1.0"
+license = "MIT/Apache-2.0"
+description = "terminal Audio playback client"
 
 [[bin]]
 name = "melody"
