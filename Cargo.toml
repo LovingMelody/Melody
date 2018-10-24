@@ -9,10 +9,13 @@ path = "bin/melody/main.rs"
 required-features = []
 
 [dependencies]
-app_dirs = "1.1.1"
-config = "0.7.0"
+config = "0.9.1"
 cute = "0.3.0"
 mp3-metadata = "0.3.0"
-num-integer = "0.1"
-rodio = "0.5.2"
-tabwriter = "1.0.3"
+num-integer = "0.1.39"
+rayon = "1.0.2"
+tabwriter = "1.1.0"
+rodio = "0.8.1"
+directories = "1.0.2"
+indicatif = {git="https://github.com/mitsuhiko/indicatif.git"}
+rand = "0.5.5"

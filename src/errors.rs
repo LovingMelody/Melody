@@ -1,8 +1,8 @@
-use std::fmt;
-use std::path::{Path, PathBuf};
-use std::error::Error as StdError;
-use std::io::{Error as IoError, ErrorKind as IoErrorKind};
 use mp3_metadata::Error as Mp3MetadataError;
+use std::error::Error as StdError;
+use std::fmt;
+use std::io::{Error as IoError, ErrorKind as IoErrorKind};
+use std::path::{Path, PathBuf};
 #[derive(Debug)]
 pub struct MelodyErrors {
     kind: MelodyErrorsKind,
@@ -72,5 +72,11 @@ pub enum MelodyErrorsKind {
     EmptyQueue,
     NotPaused,
     AlreadyPlaying,
+    MissingDuration,
     MetaDataError(Mp3MetadataError),
+}
+impl ::std::convert::From<Mp3MetadataError> for MelodyErrorsKind {
+    fn from(e: Mp3MetadataError) -> MelodyErrorsKind {
+        MelodyErrorsKind::MetaDataError(e)
+    }
 }

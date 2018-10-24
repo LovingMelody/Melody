@@ -1,74 +1,141 @@
-// TODO: Use Config file
+// TODO: Fix Config file
 // TODO: Iterm display for album cover? (probably not)
-// TODO: ticki/termion TUI
-use std::path::PathBuf;
-extern crate app_dirs;
+// TODO: Media Controls
 extern crate config;
+extern crate directories;
+extern crate indicatif;
 extern crate melody;
-use app_dirs::*;
+use std::path::PathBuf;
+use std::thread;
+use std::time::Duration;
 
-const APP_INFO: AppInfo = AppInfo {
-    name: "Melody",
-    author: "Fuzen",
-};
+use directories::ProjectDirs;
+use indicatif::{ProgressBar, ProgressStyle};
+use std::collections::HashMap;
 
 use melody::*;
 
-fn get_settings() -> Option<std::collections::HashMap<String, String>> {
-    let config_dir = app_root(AppDataType::UserConfig, &APP_INFO).unwrap();
+fn project_dir() -> Result<ProjectDirs, Errors> {
+    ProjectDirs::from("info", "Fuzen", "Melody").ok_or(Errors::FailedToGetAppDirectory)
+}
+
+#[derive(Debug)]
+enum Errors {
+    NoConfig,
+    FailedToGetAppDirectory,
+    FailedToGetUserDir,
+    FailedToGetAudioDir,
+    FailedConfigMergeWithEnvironment,
+    FailedToParseSettings,
+}
+fn generate_progress_bar(s: Song) -> ProgressBar {
+    let pb = ProgressBar::new(s.duration.as_secs());
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template(
+                "{spinner:.green} {msg} [{elapsed_precise}] [{bar:40.cyan/blue}] ({eta_precise})",
+            ).progress_chars("#>-"),
+    );
+    pb.set_message(&format!(
+        "{} - {} - {}",
+        s.artist.unwrap_or(String::from("Unknown Artist")),
+        s.album.unwrap_or(String::from("Unkwon Album")),
+        s.title.unwrap_or(String::from("Unkown Title"))
+    ));
+    pb
+}
+
+fn get_settings() -> Result<std::collections::HashMap<String, String>, Errors> {
+    let project_dir = project_dir()?;
+    let config_dir = project_dir.config_dir().to_owned();
+
     let mut config_file = config_dir.clone();
     config_file.push("Config.toml");
     if !&config_file.exists() {
-        return None;
+        return Err(Errors::NoConfig);
     }
-    let mut settings = config::Config::default();
-    settings
+    config::Config::default()
         .merge(config::File::with_name(
             config_file
                 .to_str()
-                .expect("Failed to generate config file path"),
-        ))
-        .unwrap()
-        .merge(config::Environment::with_prefix("MELODY"))
-        .expect("Failed to merge config with environment");
-    settings
-        .try_into()
-        .expect(&format!("Failed to parse settings: {:?}", config_file))
+                .ok_or(Errors::FailedToGetAppDirectory)?,
+        )).map_err(|_| Errors::FailedToParseSettings)
+        .and_then(|settings| {
+            settings
+                .merge(config::Environment::with_prefix("MELODY_"))
+                .map_err(|_| Errors::FailedConfigMergeWithEnvironment)
+        }).and_then(|s| {
+            s.clone()
+                .try_into::<HashMap<String, String>>()
+                .map_err(|_| Errors::FailedToParseSettings)
+        })
 }
 
 fn main() {
-    if let Some(settings) = get_settings() {
-        if let Some(music_dir) = settings.get("music") {
+    println!("{:?}", project_dir().unwrap().config_dir());
+    if let Ok(settings) = get_settings() {
+        if let Some(music_dir) = settings.get("MUSIC") {
             play_test(PathBuf::from(music_dir))
         } else {
-            let mut config_file = app_root(AppDataType::UserConfig, &APP_INFO).unwrap();
+            let mut config_file = project_dir().unwrap().config_dir().to_owned();
             config_file.push("Config.toml");
             println!("No music dir in {:?}", config_file);
         }
     } else {
-        println!("Failed to get settings, defaulting to ~/Music");
-        match std::env::home_dir() {
-            Some(mut home_dir) => {
-                home_dir.push("Music");
-                if home_dir.exists() && home_dir.is_dir() {
-                    play_test(home_dir)
-                }
-            }
-            None => println!("Failed to find home directory, exeting"),
+        let music_dir = ::std::env::var("MELODY_MUSIC")
+            .and_then(|v| Ok(PathBuf::from(v)))
+            .unwrap_or(
+                directories::UserDirs::new()
+                    .ok_or(Errors::FailedToGetUserDir)
+                    .and_then(|user_dir| {
+                        user_dir
+                            .audio_dir()
+                            .ok_or(Errors::FailedToGetAudioDir)
+                            .and_then(|audio_dir| Ok(audio_dir.to_owned()))
+                    }).unwrap(),
+            );
+        println!(
+            "Failed to get settings, defaulting to {}",
+            music_dir.to_str().unwrap()
+        );
+        if !music_dir.exists() {
+            println!("Directory does not exist, exiting...");
+            return ();
         }
+        play_test(music_dir)
     }
 }
 
 fn play_test(music_dir: PathBuf) {
     let mut mp =
         MusicPlayer::new(Playlist::from_dir(music_dir).expect("Failed to make playlist from dir"));
+    mp.shuffle();
     println!("{}", mp);
     mp.start().expect("Failed to start music player");
-    println!("{}", mp);
-    mp.lock();
-    while !mp.queue().is_empty() {
-        println!("{}", mp.status());
-        mp.play_next();
-        mp.lock();
+    let mut pb = match mp.status() {
+        MusicPlayerStatus::NowPlaying(song) => generate_progress_bar(song),
+        _ => unreachable!(),
+    };
+    loop {
+        match mp.status() {
+            MusicPlayerStatus::NowPlaying(song) => {
+                pb.set_position(song.elapsed.as_secs());
+            }
+            MusicPlayerStatus::Stopped(_) => {
+                if mp.queue().is_empty() {
+                    break;
+                } else {
+                    mp.play_next();
+                    pb = match mp.status() {
+                        MusicPlayerStatus::NowPlaying(song) => generate_progress_bar(song),
+                        _ => unreachable!(),
+                    };
+                }
+            }
+            _ => (),
+        }
+        thread::sleep(Duration::from_millis(250))
     }
+    println!("{}", mp.status());
+    println!("End of playlist, goodbye!");
 }
