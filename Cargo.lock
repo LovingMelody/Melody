@@ -173,6 +173,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "config"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "lazy_static 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nom 4.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.80 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "console"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -441,6 +452,7 @@ dependencies = [
 name = "melody"
 version = "0.1.2"
 dependencies = [
+ "config 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "cute 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "directories 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "human-panic 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -450,6 +462,8 @@ dependencies = [
  "rand 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "rayon 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rodio 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.80 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.80 (registry+https://github.com/rust-lang/crates.io-index)",
  "tabwriter 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -509,6 +523,14 @@ version = "3.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "memchr 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "nom"
+version = "4.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "memchr 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1053,6 +1075,7 @@ dependencies = [
 "checksum claxon 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "edfb6f5cce958c2741cae6774c8eb671c9caa8d079b6b7ab94d9fff895f6a3ac"
 "checksum clicolors-control 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1f84dec9bc083ce2503908cd305af98bd363da6f54bf8d4bf0ac14ee749ad5d1"
 "checksum cloudabi 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ddfc5b9aa5d4507acaf872de71051dfd0e309860e88966e1051e462a077aac4f"
+"checksum config 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)" = "13490293b8a84cc82cd531da41adeae82cd9eaa40e926ac18865aa361f9c9f60"
 "checksum console 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)" = "ecd48adf136733979b49e15bc3b4c43cc0d3c85ece7bd08e6daa414c6fcb13e6"
 "checksum core-foundation-sys 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "716c271e8613ace48344f723b60b900a93150271e5be206212d052bbc0883efa"
 "checksum coreaudio-rs 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)" = "f229761965dad3e9b11081668a6ea00f1def7aa46062321b5ec245b834f6e491"
@@ -1091,6 +1114,7 @@ dependencies = [
 "checksum mp3-metadata 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "4ab5f1d2693586420208d1200ce5a51cd44726f055b635176188137aff42c7de"
 "checksum nodrop 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)" = "9a2228dca57108069a5262f2ed8bd2e82496d2e074a06d1ccc7ce1687b6ae0a2"
 "checksum nom 3.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "05aec50c70fd288702bcd93284a8444607f3292dbdf2a30de5ea5dcdbe72287b"
+"checksum nom 4.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "9c349f68f25f596b9f44cf0e7c69752a5c633b0550c3ff849518bfba0233774a"
 "checksum num-integer 0.1.39 (registry+https://github.com/rust-lang/crates.io-index)" = "e83d528d2677f0518c570baf2b7abdcf0cd2d248860b68507bdcb3e91d4c0cea"
 "checksum num-traits 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)" = "92e5113e9fd4cc14ded8e499429f396a20f98c772a47cc8622a736e1ec843c31"
 "checksum num-traits 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "0b3a5d7cc97d6d30d8b9bc8fa19bf45349ffe46241e8816f50f62f6d6aaabee1"

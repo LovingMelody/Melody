@@ -167,7 +167,8 @@ impl Playlist {
         let mut tracks: Vec<Song> = (c![Song::load(file), for file in files])
             .into_iter()
             // Filter the errors and songs without duration
-            .filter_map(|s| s.ok()).collect();
+            .filter_map(|s| s.ok())
+            .collect();
         tracks.dedup();
         Some(Self { tracks })
     }

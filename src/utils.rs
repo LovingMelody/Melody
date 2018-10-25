@@ -81,13 +81,15 @@ pub fn get_filetype(path: &Path) -> Option<String> {
 }
 
 pub fn supported_song(path: &Path) -> bool {
-    path.exists() && path.is_file() && match get_filetype(path) {
-        Some(ext) => match ext.as_str() {
-            "flac" | "wav" | "vorbis" | "mp3" => true,
-            _ => false,
-        },
-        None => false,
-    }
+    path.exists()
+        && path.is_file()
+        && match get_filetype(path) {
+            Some(ext) => match ext.as_str() {
+                "flac" | "wav" | "vorbis" | "mp3" => true,
+                _ => false,
+            },
+            None => false,
+        }
 }
 
 pub fn organize_song(song: Song, mut to: PathBuf) -> Result<(), MelodyErrors> {
@@ -163,13 +165,15 @@ pub fn add_to_library(from: &Path, to: &Path) -> Result<Option<Vec<MelodyErrors>
         ));
     };
     match from.parent() {
-        Some(parent) => if parent == to {
-            return Err(MelodyErrors::new(
-                ChildOfParentRecursion,
-                "`from` is a direc child of to",
-                None,
-            ));
-        },
+        Some(parent) => {
+            if parent == to {
+                return Err(MelodyErrors::new(
+                    ChildOfParentRecursion,
+                    "`from` is a direc child of to",
+                    None,
+                ));
+            }
+        }
         None => {
             return Err(MelodyErrors::new(
                 FailedToFindParent,
