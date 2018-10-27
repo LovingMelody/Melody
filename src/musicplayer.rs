@@ -8,18 +8,29 @@ use std::io::{BufReader, Write};
 use tabwriter::TabWriter;
 use utils::{fmt_duration, supported_song};
 
+/// Music Player Status
+/// Showing the status of the Music player
 #[derive(Clone)]
 pub enum MusicPlayerStatus {
+    /// Music player has stopped
+    /// Contains the previus song if any
     Stopped(Option<Song>),
+    /// Now playing: song
     NowPlaying(Song),
+    /// Paused: Song
     Paused(Song),
 }
 
+/// Displays the following
+/// [Paused] : {Song} @ Time stamp
+/// [Now Playing] : Song
+/// [Stopped] : Last Played - Song
+/// [Stopped]
 impl fmt::Display for MusicPlayerStatus {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use MusicPlayerStatus::*;
         match self.clone() {
-            Paused(song) => write!(f, "[Paused] : {}", song),
+            Paused(song) => write!(f, "[Paused] : {} @ {}", song, fmt_duration(&song.elapsed)),
             NowPlaying(song) => write!(f, "[Now Playing] : {}", song),
             Stopped(s) => match s {
                 Some(song) => write!(f, "[Stopped] : Last Played - {}", song),
@@ -28,25 +39,33 @@ impl fmt::Display for MusicPlayerStatus {
         }
     }
 }
-
+// TODO: Implement Back
+/// Music Player
 pub struct MusicPlayer {
+    /// Songs in Queue
     playlist: Vec<Song>,
+    /// Audio controller
     sink: rodio::Sink,
+    /// Current song
     current: Option<Song>,
+    /// Previus song
     previous: Option<Song>,
+    /// Used to find the current the song's play time
+    /// `::std::time::instant` is used for start time
+    /// `::std::time::Duration` is used for storing postion in the event of pause
     playing_time: (::std::time::Instant, ::std::time::Duration),
 }
 
 impl MusicPlayer {
+    /// Cronstructs a new MusicPlayer
     pub fn new(playlist: Playlist) -> Self {
-        // TODO: USe a non-depricated method
-        #[allow(deprecated)]
+        // Audio endpoint (EX: Alsa)
         let endpoint =
             rodio::default_output_device().expect("Failed to find default music endpoint");
-
         MusicPlayer {
             // Remove all unsuported songs
             playlist: c![song, for song in playlist.tracks, if supported_song(song.file())],
+            // Create audio controller
             sink: rodio::Sink::new(&endpoint),
             current: None,
             previous: None,
@@ -57,10 +76,13 @@ impl MusicPlayer {
         }
     }
 
+    /// Shuffle the order of the playlist
     pub fn shuffle(&mut self) {
         thread_rng().shuffle(&mut self.playlist);
     }
 
+    /// Plays the first song in the Queue if any
+    /// Otherwise throws an error
     pub fn start(&mut self) -> Result<(), MelodyErrors> {
         if self.playlist.is_empty() {
             Err(MelodyErrors::new(
@@ -72,10 +94,12 @@ impl MusicPlayer {
             if self.sink.empty() {
                 self.playing_time.0 = ::std::time::Instant::now();
                 let current = self.playlist.remove(0);
-                let file =
-                    File::open(&current).expect(&format!("Failed to read {:?}", current.file));
+                // TODO: Make this return an error
+                let file = File::open(&current)
+                    .unwrap_or_else(|_| panic!("Failed to read {:#?}", current.file));
+                // TODO: Make this return an error
                 let source = rodio::Decoder::new(BufReader::new(file))
-                    .expect(&format!("Failed to decode {:?}", current.file));
+                    .unwrap_or_else(|_| panic!("Failed to decode {:#?}", current.file));
                 self.sink.append(source);
 
                 self.current = Some(current);
@@ -83,6 +107,11 @@ impl MusicPlayer {
             Ok(())
         }
     }
+
+    /// Resume's the song
+    /// Should only be used of the song was paused
+    /// Or it messes with the song's progress counter
+    // TODO: Fix error when called when not stopped
     pub fn resume(&mut self) {
         self.sink.play();
         self.playing_time.0 = ::std::time::Instant::now();
@@ -166,5 +195,11 @@ impl fmt::Display for MusicPlayer {
             now_playing,
             String::from_utf8(tw.into_inner().unwrap()).unwrap()
         )
+    }
+}
+
+impl Drop for MusicPlayer {
+    fn drop(&mut self) {
+        self.sink.stop()
     }
 }

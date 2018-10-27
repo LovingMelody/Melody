@@ -3,10 +3,15 @@ use std::error::Error as StdError;
 use std::fmt;
 use std::io::{Error as IoError, ErrorKind as IoErrorKind};
 use std::path::{Path, PathBuf};
+
 #[derive(Debug)]
+/// Errors from Melody
 pub struct MelodyErrors {
+    /// Kind of error
     kind: MelodyErrorsKind,
+    /// Description of error
     description: String,
+    /// Path to file related to error
     file: Option<PathBuf>,
 }
 
@@ -20,7 +25,20 @@ impl fmt::Display for MelodyErrors {
         f.write_str(self.description())
     }
 }
-
+/// MelodyErrors
+/// # Example
+/// ```
+/// match ::std::env::current_dir() {
+///     Ok(path) => {
+///         if !path.exists() {
+///             Err(melody::MelodyErrors::new(melody::MelodyErrorsKind::PathDoesNotExist, "Path does not exist", Some(&path)))
+///         } else {
+///             Ok(path)
+///         }
+///     },
+///     Err(e) => Err(e.into())
+/// };
+/// ```
 impl MelodyErrors {
     pub fn new(kind: MelodyErrorsKind, description: &str, file: Option<&Path>) -> Self {
         Self {
@@ -56,6 +74,7 @@ impl From<IoError> for MelodyErrors {
 //     }
 // }
 
+/// Kind of errror that arose from Melody
 #[derive(Clone, Copy, Debug)]
 pub enum MelodyErrorsKind {
     Io(IoErrorKind),

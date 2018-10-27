@@ -22,7 +22,7 @@ pub struct Song {
 
 impl fmt::Display for Song {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let duration = format!("{}", fmt_duration(&self.duration));
+        let duration = fmt_duration(&self.duration);
         write!(
             f,
             "{} - {} - {} ({})",
@@ -171,6 +171,9 @@ impl Playlist {
             .collect();
         tracks.dedup();
         Some(Self { tracks })
+    }
+    pub fn is_empty(&self) -> bool {
+        self.tracks.is_empty()
     }
 }
 

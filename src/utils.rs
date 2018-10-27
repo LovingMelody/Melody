@@ -81,15 +81,13 @@ pub fn get_filetype(path: &Path) -> Option<String> {
 }
 
 pub fn supported_song(path: &Path) -> bool {
-    path.exists()
-        && path.is_file()
-        && match get_filetype(path) {
-            Some(ext) => match ext.as_str() {
-                "flac" | "wav" | "vorbis" | "mp3" => true,
-                _ => false,
-            },
-            None => false,
-        }
+    path.exists() && path.is_file() && match get_filetype(path) {
+        Some(ext) => match ext.as_str() {
+            "flac" | "wav" | "vorbis" | "mp3" => true,
+            _ => false,
+        },
+        None => false,
+    }
 }
 
 pub fn organize_song(song: Song, mut to: PathBuf) -> Result<(), MelodyErrors> {
@@ -212,7 +210,7 @@ pub fn genre_to_string(from: &Genre) -> String {
 /// `music_dir` - Music directory to find duplicates
 /// Returns a list of duplicates
 pub fn find_duplicates(music_dir: &Path) -> Result<Vec<PathBuf>, ()> {
-    fn list_occ(s: &Song, v: &Vec<Song>) -> Vec<usize> {
+    fn list_occ(s: &Song, v: &[Song]) -> Vec<usize> {
         let mut occ = vec![];
         for (pos, song) in v.iter().enumerate() {
             if song.matching_song(s, false) {
@@ -239,7 +237,7 @@ pub fn find_duplicates(music_dir: &Path) -> Result<Vec<PathBuf>, ()> {
         dupes.shrink_to_fit();
         Ok(dupes
             .par_iter()
-            .map(|pos| tracks[pos.clone()].file.clone())
+            .map(|pos| tracks[*pos].file.clone())
             .collect())
     } else {
         Err(())
