@@ -68,7 +68,6 @@ fn play_test() -> Result<(), Errors> {
     drop(config);
     mp.shuffle();
     println!("{}", mp);
-    mp.start().map_err(|_| Errors::FailedToStartMusicPlayer)?;
     let mut pb = match mp.status() {
         MusicPlayerStatus::NowPlaying(song) => generate_progress_bar(song),
         _ => unreachable!(),

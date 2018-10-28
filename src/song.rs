@@ -35,42 +35,56 @@ impl fmt::Display for Song {
 }
 
 impl Song {
+    /// Optionally return the artist of the song
+    /// If `None` it wasnt able to read the tags
     pub fn artist(&self) -> Option<&str> {
         match self.artist.as_ref() {
             Some(artist) => Some(artist),
             None => None,
         }
     }
+    /// Optionally return the song's album
+    /// If `None` failed to read the tags
     pub fn album(&self) -> Option<&str> {
         match self.album.as_ref() {
             Some(album) => Some(album),
             None => None,
         }
     }
+    /// Optionally return the title of the song
+    /// If `None` it wasnt able to read the tags
     pub fn title(&self) -> Option<&str> {
         match self.title.as_ref() {
             Some(title) => Some(title),
             None => None,
         }
     }
+    /// Optionally returns the song's track number
+    /// If `None` it wasnt able to read the tags
     pub fn track(&self) -> Option<u32> {
         self.track
     }
+    /// Optionally returns the song's genere
+    /// If `None` it wasnt able to read the tags
     pub fn genre(&self) -> Option<&str> {
         match self.genre.as_ref() {
             Some(genre) => Some(genre),
             None => None,
         }
     }
+    /// Returns the `Duration` of the song
     pub fn duration(&self) -> Duration {
         self.duration
     }
+    /// Returns the elapsed time the song has been played
     pub fn elapsed(&self) -> Duration {
         self.elapsed
     }
+    /// Returns the path of the song
     pub fn file(&self) -> &Path {
         &self.file
     }
+    /// Load song from Pathbuf
     pub fn load(file: PathBuf) -> Result<Self, MelodyErrors> {
         use mp3_metadata;
 
@@ -111,6 +125,8 @@ impl Song {
             elapsed: Duration::from_millis(0),
         })
     }
+    /// Checks if the song is the same
+    /// if matching_genre is true it will check genre as well
     pub fn matching_song(&self, s: &Song, matching_genre: bool) -> bool {
         if self.artist() != s.artist() {
             return false;
@@ -135,8 +151,10 @@ impl Song {
         }
         true
     }
-    pub fn exact_match(&self, s: &Song) -> bool {
-        self.matching_song(s, true) && self.file() == s.file()
+    /// Checks if the song is an exact match
+    /// Checks the song's tags and if the path is the same
+    pub fn exact_match(&self, s: &Song, same_path: bool) -> bool {
+        self.matching_song(s, true) && ((self.file() == s.file()) | same_path)
     }
 }
 
@@ -146,11 +164,15 @@ impl AsRef<Path> for Song {
     }
 }
 
+/// Collection of Songs
 pub struct Playlist {
     pub tracks: Vec<Song>,
 }
 
 impl Playlist {
+    /// Create a playlist from a directory
+    /// will walk through the directory and
+    /// collect the songs it can process
     pub fn from_dir(path: PathBuf) -> Option<Self> {
         if !path.exists() {
             return None;
@@ -162,16 +184,19 @@ impl Playlist {
                 return None;
             }
         };
-        // let tracks = c![Song::load(file), for file in list_files(path), if supported_song(&file)];
-        let files = c![f, for f in list_files(path), if supported_song(&f)];
-        let mut tracks: Vec<Song> = (c![Song::load(file), for file in files])
-            .into_iter()
-            // Filter the errors and songs without duration
-            .filter_map(|s| s.ok())
-            .collect();
+        println!("Collecting tracks..");
+        let mut tracks: Vec<Song> = list_files(path)
+            .filter_map(|f| {
+                if supported_song(&f) {
+                    Song::load(f).ok()
+                } else {
+                    None
+                }
+            }).collect();
         tracks.dedup();
         Some(Self { tracks })
     }
+    /// Returns if the playlist is currently empty
     pub fn is_empty(&self) -> bool {
         self.tracks.is_empty()
     }

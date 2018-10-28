@@ -1,13 +1,14 @@
 use errors::{MelodyErrors, MelodyErrorsKind};
 use mp3_metadata::Genre;
 use num_integer::div_mod_floor;
-use rayon::prelude::*;
 use song::{Playlist, Song};
 use std::fs;
 use std::io::ErrorKind as IoErrorKind;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
+use walkdir::WalkDir;
 
+/// Helper function to format `Duration` to a string
 pub fn fmt_duration(time: &Duration) -> String {
     let (min, sec) = div_mod_floor(time.as_secs(), 60);
     let (hour, min) = div_mod_floor(min, 60);
@@ -28,68 +29,42 @@ pub fn fmt_duration(time: &Duration) -> String {
 pub fn ignored_file(p: &Path) -> bool {
     match p.file_name() {
         Some(file_name) => match file_name.to_str() {
-            Some(name) => name.starts_with(".#"),
-            None => true,
+            Some(name) => !name.starts_with(".#"),
+            None => false,
         },
-        None => true,
+        None => false,
     }
 }
 
 /// Recursively list all the files of Path (if not ignored), if path is a file, return vec![path]
-pub fn list_files(path: PathBuf) -> Vec<PathBuf> {
-    // Files that start with .# are ignored
-    if ignored_file(&path) {
-        return vec![];
-    }
-    if path.is_file() {
-        if path.exists() {
-            vec![path; 1]
-        } else {
-            vec![]
-        }
-    } else {
-        let mut files: Vec<PathBuf> = Vec::new();
-        let mut folders: Vec<PathBuf> = vec![path];
-        while !folders.is_empty() {
-            let folder = folders.pop().expect("There is no folders");
-            // Folders that start with .# are ignored
-            if ignored_file(&folder) {
-                continue;
-            }
-            if let Ok(entries) = fs::read_dir(folder) {
-                for entry in entries {
-                    if let Ok(e) = entry {
-                        let p = e.path();
-                        if ignored_file(&p) {
-                            continue;
-                        }
-                        if p.is_file() {
-                            files.push(p)
-                        } else {
-                            folders.push(p)
-                        }
-                    }
-                }
-            }
-        }
-        files
-    }
+pub fn list_files(path: PathBuf) -> impl Iterator<Item = PathBuf> {
+    WalkDir::new(path)
+        .into_iter()
+        .filter_map(|e| e.ok().and_then(|e| Some(e.into_path())))
+        .filter(|p| ignored_file(p))
 }
-
+/// Optionally returns the file's extention as a String
 pub fn get_filetype(path: &Path) -> Option<String> {
     Some(path.extension()?.to_str()?.to_lowercase())
 }
 
+/// Checks if a song is supported
+/// If a song's file extention is
+/// flac | wav | vorbis | mp3 | ogg
+/// its supported
 pub fn supported_song(path: &Path) -> bool {
     path.exists() && path.is_file() && match get_filetype(path) {
         Some(ext) => match ext.as_str() {
-            "flac" | "wav" | "vorbis" | "mp3" => true,
+            "flac" | "wav" | "vorbis" | "mp3" | "ogg" => true,
             _ => false,
         },
         None => false,
     }
 }
 
+/// Function meant to organize a specific song
+/// Song: Song to organize
+/// to: Directory move song to
 pub fn organize_song(song: Song, mut to: PathBuf) -> Result<(), MelodyErrors> {
     use self::MelodyErrorsKind::*;
     if song.file().is_dir() {
@@ -181,23 +156,15 @@ pub fn add_to_library(from: &Path, to: &Path) -> Result<Option<Vec<MelodyErrors>
         }
     };
     let files = list_files(from.to_path_buf());
-    let mut skipped: Vec<MelodyErrors> = Vec::new();
-    for file in &files {
-        match Song::load(file.to_path_buf()) {
-            Ok(song) => match organize_song(song, to.to_path_buf()) {
-                Ok(_) => (),
-                Err(e) => skipped.push(e),
-            },
-            Err(e) => skipped.push(e),
-        }
-    }
-    if skipped.is_empty() {
-        Ok(None)
-    } else {
-        Ok(Some(skipped))
-    }
+    Ok(Some(
+        files
+            .filter_map(|f| match Song::load(f) {
+                Ok(_) => None,
+                Err(e) => Some(e),
+            }).collect(),
+    ))
 }
-
+/// Converts &Genere to a string
 pub fn genre_to_string(from: &Genre) -> String {
     use self::Genre::*;
     match from.clone() {
@@ -223,6 +190,7 @@ pub fn find_duplicates(music_dir: &Path) -> Result<Vec<PathBuf>, ()> {
     if let Some(pl) = Playlist::from_dir(music_dir) {
         let mut tracks = pl.tracks;
         let mut dupes = Vec::with_capacity(tracks.len());
+        // TODO: convert it into a lazy iter
         for track in &tracks {
             let occ = list_occ(track, &tracks);
             if occ.len() == 1 {
@@ -235,10 +203,7 @@ pub fn find_duplicates(music_dir: &Path) -> Result<Vec<PathBuf>, ()> {
             }
         }
         dupes.shrink_to_fit();
-        Ok(dupes
-            .par_iter()
-            .map(|pos| tracks[*pos].file.clone())
-            .collect())
+        Ok(dupes.iter().map(|pos| tracks[*pos].file.clone()).collect())
     } else {
         Err(())
     }

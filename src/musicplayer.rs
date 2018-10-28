@@ -6,7 +6,7 @@ use std::fmt;
 use std::fs::File;
 use std::io::{BufReader, Write};
 use tabwriter::TabWriter;
-use utils::{fmt_duration, supported_song};
+use utils::fmt_duration;
 
 /// Music Player Status
 /// Showing the status of the Music player
@@ -64,7 +64,7 @@ impl MusicPlayer {
             rodio::default_output_device().expect("Failed to find default music endpoint");
         MusicPlayer {
             // Remove all unsuported songs
-            playlist: c![song, for song in playlist.tracks, if supported_song(song.file())],
+            playlist: playlist.tracks, //c![song, for song in playlist.tracks, if supported_song(song.file())],
             // Create audio controller
             sink: rodio::Sink::new(&endpoint),
             current: None,
@@ -116,10 +116,15 @@ impl MusicPlayer {
         self.sink.play();
         self.playing_time.0 = ::std::time::Instant::now();
     }
+    /// Pauses Song
     pub fn pause(&mut self) {
         self.sink.pause();
-        self.playing_time.1 = self.playing_time.0.elapsed();
+        // Update Song's playing time
+        self.playing_time.1 += self.playing_time.0.elapsed();
     }
+
+    /// Stop's currently playing song
+    // TODO: Fix error if no current song
     pub fn stop(&mut self) {
         self.sink.stop();
         self.previous = self.current.clone().and_then(|mut s| {
@@ -128,21 +133,30 @@ impl MusicPlayer {
         });
         self.current = None;
     }
+    /// Play next Song in Queue
+    /// TODO: Return something if there is nothing else
     pub fn play_next(&mut self) {
         self.start().unwrap_or(());
     }
+    /// Returns the music players volume
+    /// Volume precentage is represented as a decimal
     pub fn volume(&self) -> f32 {
         self.sink.volume()
     }
+    /// Set the volume of the music player
+    /// volume: Precentage as a decimal
     pub fn set_volume(&mut self, volume: f32) {
         self.sink.set_volume(volume)
     }
+    /// Lock current thread until current song ends
     pub fn lock(&self) {
         self.sink.sleep_until_end();
     }
+    /// List current songs in queue
     pub fn queue(&self) -> &Vec<Song> {
         &self.playlist
     }
+    /// Return the music players status
     pub fn status(&self) -> MusicPlayerStatus {
         if self.sink.empty() {
             MusicPlayerStatus::Stopped(self.previous.clone())
