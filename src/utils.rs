@@ -40,7 +40,7 @@ pub fn ignored_file(p: &Path) -> bool {
 pub fn list_files(path: PathBuf) -> impl Iterator<Item = PathBuf> {
     WalkDir::new(path)
         .into_iter()
-        .filter_map(|e| e.ok().and_then(|e| Some(e.into_path())))
+        .filter_map(|e| e.ok().map(|e| e.into_path()))
         .filter(|p| ignored_file(p))
 }
 /// Optionally returns the file's extention as a String
@@ -53,13 +53,12 @@ pub fn get_filetype(path: &Path) -> Option<String> {
 /// flac | wav | vorbis | mp3 | ogg
 /// its supported
 pub fn supported_song(path: &Path) -> bool {
-    path.exists() && path.is_file() && match get_filetype(path) {
-        Some(ext) => match ext.as_str() {
-            "flac" | "wav" | "vorbis" | "mp3" | "ogg" => true,
-            _ => false,
-        },
-        None => false,
-    }
+    path.exists()
+        && path.is_file()
+        && match get_filetype(path) {
+            Some(ext) => matches!(ext.as_str(), "flac" | "wav" | "vorbis" | "mp3" | "ogg"),
+            None => false,
+        }
 }
 
 /// Function meant to organize a specific song
@@ -161,7 +160,8 @@ pub fn add_to_library(from: &Path, to: &Path) -> Result<Option<Vec<MelodyErrors>
             .filter_map(|f| match Song::load(f) {
                 Ok(_) => None,
                 Err(e) => Some(e),
-            }).collect(),
+            })
+            .collect(),
     ))
 }
 /// Converts &Genere to a string
@@ -188,7 +188,7 @@ pub fn find_duplicates(music_dir: &Path) -> Result<Vec<PathBuf>, ()> {
     }
     let music_dir = music_dir.to_path_buf();
     if let Some(pl) = Playlist::from_dir(music_dir) {
-        let mut tracks = pl.tracks;
+        let tracks = pl.tracks;
         let mut dupes = Vec::with_capacity(tracks.len());
         // TODO: convert it into a lazy iter
         for track in &tracks {

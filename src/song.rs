@@ -8,7 +8,7 @@ use utils::{fmt_duration, genre_to_string, list_files, supported_song};
 use errors::MelodyErrors;
 use tabwriter::TabWriter;
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Song {
     pub artist: Option<String>,
     pub album: Option<String>,
@@ -86,19 +86,19 @@ impl Song {
     }
     /// Load song from Pathbuf
     pub fn load(file: PathBuf) -> Result<Self, MelodyErrors> {
-        use mp3_metadata;
-
         let mut artist: Option<String> = None;
         let mut album: Option<String> = None;
         let mut title: Option<String> = None;
         let mut genre: Option<String> = None;
         let track: Option<u32> = None;
         let metadata = match mp3_metadata::read_from_file(&file) {
-            Err(e) => Err(MelodyErrors::new(
-                e.into(),
-                "Failed to read meta data",
-                Some(&file),
-            ))?,
+            Err(e) => {
+                return Err(MelodyErrors::new(
+                    e.into(),
+                    "Failed to read meta data",
+                    Some(&file),
+                ))
+            }
             Ok(m) => m,
         };
         let duration = metadata.duration;
@@ -192,7 +192,8 @@ impl Playlist {
                 } else {
                     None
                 }
-            }).collect();
+            })
+            .collect();
         tracks.dedup();
         Some(Self { tracks })
     }

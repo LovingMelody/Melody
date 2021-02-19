@@ -32,7 +32,8 @@ fn generate_progress_bar(s: Song) -> ProgressBar {
         ProgressStyle::default_bar()
             .template(
                 "{spinner:.green} {msg} [{elapsed_precise}] [{bar:40.cyan/blue}] ({eta_precise})",
-            ).progress_chars("#>-"),
+            )
+            .progress_chars("#>-"),
     );
     pb.set_message(&format!(
         "{} - {} - {}",
@@ -67,8 +68,9 @@ fn play_test() -> Result<(), Errors> {
     mp.set_volume(config.volume);
     drop(config);
     mp.shuffle();
+    mp.start().unwrap();
     println!("{}", mp);
-    let mut pb = match mp.status() {
+    let mut pb = match dbg!(mp.status()) {
         MusicPlayerStatus::NowPlaying(song) => generate_progress_bar(song),
         _ => unreachable!(),
     };
@@ -82,7 +84,7 @@ fn play_test() -> Result<(), Errors> {
                     break;
                 } else {
                     mp.play_next();
-                    pb = match mp.status() {
+                    pb = match dbg!(mp.status()) {
                         MusicPlayerStatus::NowPlaying(song) => generate_progress_bar(song),
                         _ => unreachable!(),
                     };

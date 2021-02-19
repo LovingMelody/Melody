@@ -22,7 +22,7 @@ impl StdError for MelodyErrors {
 }
 impl fmt::Display for MelodyErrors {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(self.description())
+        f.write_str(&self.description)
     }
 }
 /// MelodyErrors
@@ -60,7 +60,7 @@ impl MelodyErrors {
 
 impl From<IoError> for MelodyErrors {
     fn from(err: IoError) -> Self {
-        MelodyErrors::new(MelodyErrorsKind::Io(err.kind()), err.description(), None)
+        MelodyErrors::new(MelodyErrorsKind::Io(err.kind()), &format!("{}", err), None)
     }
 }
 

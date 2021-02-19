@@ -19,7 +19,7 @@ impl Settings {
     pub fn new() -> Result<Settings, Errors> {
         let project_dir = project_dir()?;
         let mut config_file = project_dir.config_dir().to_owned();
-        ::std::fs::create_dir_all(&config_file).is_ok(); // Result doesnt matter
+        let _ = ::std::fs::create_dir_all(&config_file).is_ok(); // Result doesnt matter
         config_file.push("Config.melody");
         println!("Config is located at: {:#?}", config_file);
         let mut settings = if !config_file.exists() {

@@ -1,5 +1,5 @@
 use errors::{MelodyErrors, MelodyErrorsKind};
-use rand::{thread_rng, Rng};
+use rand::{seq::SliceRandom, thread_rng};
 use rodio;
 use song::{Playlist, Song};
 use std::fmt;
@@ -10,7 +10,7 @@ use utils::fmt_duration;
 
 /// Music Player Status
 /// Showing the status of the Music player
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum MusicPlayerStatus {
     /// Music player has stopped
     /// Contains the previus song if any
@@ -42,6 +42,9 @@ impl fmt::Display for MusicPlayerStatus {
 // TODO: Implement Back
 /// Music Player
 pub struct MusicPlayer {
+    // Stream must remain for audio to play
+    #[allow(dead_code)]
+    stream: rodio::OutputStream,
     /// Songs in Queue
     playlist: Vec<Song>,
     /// Audio controller
@@ -60,13 +63,15 @@ impl MusicPlayer {
     /// Cronstructs a new MusicPlayer
     pub fn new(playlist: Playlist) -> Self {
         // Audio endpoint (EX: Alsa)
-        let endpoint =
-            rodio::default_output_device().expect("Failed to find default music endpoint");
+        let (stream, stream_handle) =
+            rodio::OutputStream::try_default().expect("Failed to find default music endpoint");
+
         MusicPlayer {
+            stream,
             // Remove all unsuported songs
             playlist: playlist.tracks, //c![song, for song in playlist.tracks, if supported_song(song.file())],
             // Create audio controller
-            sink: rodio::Sink::new(&endpoint),
+            sink: rodio::Sink::try_new(&stream_handle).unwrap(),
             current: None,
             previous: None,
             playing_time: (
@@ -78,7 +83,7 @@ impl MusicPlayer {
 
     /// Shuffle the order of the playlist
     pub fn shuffle(&mut self) {
-        thread_rng().shuffle(&mut self.playlist);
+        self.playlist.shuffle(&mut thread_rng());
     }
 
     /// Plays the first song in the Queue if any
@@ -127,9 +132,9 @@ impl MusicPlayer {
     // TODO: Fix error if no current song
     pub fn stop(&mut self) {
         self.sink.stop();
-        self.previous = self.current.clone().and_then(|mut s| {
+        self.previous = self.current.clone().map(|mut s| {
             s.elapsed = self.playing_time.0.elapsed() + self.playing_time.1;
-            Some(s)
+            s
         });
         self.current = None;
     }
