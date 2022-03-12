@@ -1,7 +1,7 @@
 [package]
 authors = ["Fuzen <fuzen@protonmail.com>"]
 name = "melody"
-version = "0.1.4"
+version = "0.1.5"
 license = "MIT/Apache-2.0"
 description = "terminal Audio playback client"
 repository = "https://gitlab.com/Fuzen-py/Melody"

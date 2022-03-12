@@ -72,7 +72,7 @@ fn play_test() -> Result<(), Errors> {
     mp.shuffle();
     mp.start().unwrap();
     println!("{}", mp);
-    let mut pb = match dbg!(mp.status()) {
+    let mut pb = match mp.status() {
         MusicPlayerStatus::NowPlaying(song) => generate_progress_bar(song),
         _ => unreachable!(),
     };
@@ -86,7 +86,7 @@ fn play_test() -> Result<(), Errors> {
                     break;
                 } else {
                     mp.play_next();
-                    pb = match dbg!(mp.status()) {
+                    pb = match mp.status() {
                         MusicPlayerStatus::NowPlaying(song) => generate_progress_bar(song),
                         _ => unreachable!(),
                     };
