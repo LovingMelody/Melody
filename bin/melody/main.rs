@@ -2,13 +2,11 @@
 // TODO: Fix Config file
 // TODO: Iterm display for album cover? (probably not)
 // TODO: Media Controls
-extern crate directories;
-extern crate indicatif;
-extern crate melody;
-#[macro_use]
-extern crate human_panic;
+use indicatif;
+use melody;
 use std::thread;
 use std::time::Duration;
+use std::env;
 
 use indicatif::{ProgressBar, ProgressStyle};
 
@@ -47,7 +45,11 @@ fn generate_progress_bar(s: Song) -> ProgressBar {
 }
 
 fn main() {
-    setup_panic!();
+    human_panic::setup_panic!();
+    if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "melody=error")
+    }
+    pretty_env_logger::init();
     play_test().unwrap()
 }
 

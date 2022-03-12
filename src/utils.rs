@@ -1,6 +1,5 @@
 use crate::errors::{MelodyErrors, MelodyErrorsKind};
 use crate::song::{Playlist, Song};
-use mp3_metadata::Genre;
 use num_integer::div_mod_floor;
 use std::fs;
 use std::io::ErrorKind as IoErrorKind;
@@ -164,14 +163,7 @@ pub fn add_to_library(from: &Path, to: &Path) -> Result<Option<Vec<MelodyErrors>
             .collect(),
     ))
 }
-/// Converts &Genere to a string
-pub fn genre_to_string(from: &Genre) -> String {
-    use self::Genre::*;
-    match from.clone() {
-        Something(txt) => txt,
-        _ => format!("{:?}", from),
-    }
-}
+
 
 /// Find  Duplicates
 /// `music_dir` - Music directory to find duplicates

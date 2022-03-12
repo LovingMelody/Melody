@@ -1,4 +1,3 @@
-use mp3_metadata::Error as Mp3MetadataError;
 use std::error::Error as StdError;
 use std::fmt;
 use std::io::{Error as IoError, ErrorKind as IoErrorKind};
@@ -47,8 +46,8 @@ impl MelodyErrors {
             file: file.map(|f| f.to_path_buf()),
         }
     }
-    pub fn kind(&self) -> MelodyErrorsKind {
-        self.kind
+    pub fn kind(&self) -> &MelodyErrorsKind {
+        &self.kind
     }
     pub fn file(&self) -> Option<PathBuf> {
         self.file.clone()
@@ -72,7 +71,7 @@ impl From<IoError> for MelodyErrors {
 // }
 
 /// Kind of errror that arose from Melody
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 pub enum MelodyErrorsKind {
     Io(IoErrorKind),
     NotAbsolutePath,
@@ -89,10 +88,10 @@ pub enum MelodyErrorsKind {
     NotPaused,
     AlreadyPlaying,
     MissingDuration,
-    MetaDataError(Mp3MetadataError),
+    MetaDataError(lofty::error::LoftyError),
 }
-impl ::std::convert::From<Mp3MetadataError> for MelodyErrorsKind {
-    fn from(e: Mp3MetadataError) -> MelodyErrorsKind {
+impl ::std::convert::From<lofty::error::LoftyError> for MelodyErrorsKind {
+    fn from(e: lofty::error::LoftyError) -> MelodyErrorsKind {
         MelodyErrorsKind::MetaDataError(e)
     }
 }

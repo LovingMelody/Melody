@@ -1,4 +1,4 @@
-use crate::utils::{fmt_duration, genre_to_string, list_files, supported_song};
+use crate::utils::{fmt_duration, list_files, supported_song};
 use std::convert::AsRef;
 use std::fmt;
 use std::io::Write;
@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use crate::errors::MelodyErrors;
+use lofty::Accessor;
 use tabwriter::TabWriter;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -86,41 +87,22 @@ impl Song {
     }
     /// Load song from Pathbuf
     pub fn load(file: PathBuf) -> Result<Self, MelodyErrors> {
-        let mut artist: Option<String> = None;
-        let mut album: Option<String> = None;
-        let mut title: Option<String> = None;
-        let mut genre: Option<String> = None;
         let track: Option<u32> = None;
-        let metadata = match mp3_metadata::read_from_file(&file) {
-            Err(e) => {
-                return Err(MelodyErrors::new(
-                    e.into(),
-                    "Failed to read meta data",
-                    Some(&file),
-                ))
-            }
-            Ok(m) => m,
+        let tagged_file = lofty::Probe::open(&file).map_err(|e| {
+            MelodyErrors::new(e.into(), "Invalid path provided", Some(file.as_path()))
+        })?.read(true)
+        .map_err(|e| MelodyErrors::new(e.into(), "Failed to read file", Some(file.as_path())))?;
+        let metadata = match tagged_file.primary_tag() {
+            Some(tag) => tag,
+            None => tagged_file.first_tag().ok_or_else(|| MelodyErrors::new(crate::MelodyErrorsKind::FailedToReadTag, "Failed to get file tags", Some(file.as_path())))?
         };
-        let duration = metadata.duration;
-        if let Some(tag) = metadata.tag {
-            if !tag.title.is_empty() {
-                title = Some(tag.title)
-            }
-            if !tag.artist.is_empty() {
-                artist = Some(tag.artist)
-            }
-            if !tag.album.is_empty() {
-                album = Some(tag.album)
-            }
-            genre = Some(genre_to_string(&tag.genre))
-        }
         Ok(Self {
-            artist,
-            album,
-            title,
-            genre,
+            artist: metadata.artist().map(|s| s.to_owned()),
+            album: metadata.album().map(|s| s.to_owned()),
+            title: metadata.title().map(|s| s.to_owned()),
+            genre: metadata.genre().map(|s| s.to_owned()),
             track,
-            duration,
+            duration: tagged_file.properties().duration(),
             file,
             elapsed: Duration::from_millis(0),
         })

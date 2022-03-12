@@ -4,12 +4,11 @@
 // TODO: Write benchmarks
 // TODO: Write docs
 
-extern crate mp3_metadata;
-extern crate num_integer;
-extern crate rand;
-extern crate rodio;
-extern crate tabwriter;
-extern crate walkdir;
+// extern crate num_integer;
+// extern crate rand;
+// extern crate rodio;
+// extern crate tabwriter;
+// extern crate walkdir;
 
 mod errors;
 mod song;

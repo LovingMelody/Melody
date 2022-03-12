@@ -21,7 +21,7 @@ impl Settings {
         let mut config_file = project_dir.config_dir().to_owned();
         let _ = ::std::fs::create_dir_all(&config_file).is_ok(); // Result doesnt matter
         config_file.push("Config.melody");
-        println!("Config is located at: {:#?}", config_file);
+        log::info!("Config is located at: {:?}", config_file);
         let mut settings = if !config_file.exists() {
             Self::create_default(config_file)?
         } else {
