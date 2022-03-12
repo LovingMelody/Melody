@@ -2,7 +2,7 @@ use directories::{ProjectDirs, UserDirs};
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
 
-use Errors;
+use crate::Errors;
 
 fn project_dir() -> Result<ProjectDirs, Errors> {
     ProjectDirs::from("info", "Fuzen", "Melody").ok_or(Errors::FailedToGetAppDirectory)
@@ -29,26 +29,24 @@ impl Settings {
             let mut volume: f32 = 0.25;
             let mut prioritize_cwd: bool = false;
             let mut music: Option<PathBuf> = None;
-            for line in BufReader::new(file).lines() {
-                if let Ok(line) = line {
-                    if line.starts_with("volume=") {
-                        if let Some(v) = line.get(7..) {
-                            if let Ok(v) = v.parse() {
-                                volume = v;
-                            }
+            for line in BufReader::new(file).lines().flatten() {
+                if line.starts_with("volume=") {
+                    if let Some(v) = line.get(7..) {
+                        if let Ok(v) = v.parse() {
+                            volume = v;
                         }
-                    } else if line.starts_with("music=") {
-                        if let Some(v) = line.get(6..) {
-                            let p = PathBuf::from(v);
-                            if p.exists() {
-                                music = Some(p)
-                            }
+                    }
+                } else if line.starts_with("music=") {
+                    if let Some(v) = line.get(6..) {
+                        let p = PathBuf::from(v);
+                        if p.exists() {
+                            music = Some(p)
                         }
-                    } else if line.starts_with("prioritize_cwd") {
-                        if let Some(v) = line.get(15..) {
-                            if let Ok(v) = v.parse() {
-                                prioritize_cwd = v;
-                            }
+                    }
+                } else if line.starts_with("prioritize_cwd") {
+                    if let Some(v) = line.get(15..) {
+                        if let Ok(v) = v.parse() {
+                            prioritize_cwd = v;
                         }
                     }
                 }

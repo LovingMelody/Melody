@@ -1,12 +1,11 @@
-use errors::{MelodyErrors, MelodyErrorsKind};
+use crate::errors::{MelodyErrors, MelodyErrorsKind};
+use crate::song::{Playlist, Song};
+use crate::utils::fmt_duration;
 use rand::{seq::SliceRandom, thread_rng};
-use rodio;
-use song::{Playlist, Song};
 use std::fmt;
 use std::fs::File;
 use std::io::{BufReader, Write};
 use tabwriter::TabWriter;
-use utils::fmt_duration;
 
 /// Music Player Status
 /// Showing the status of the Music player

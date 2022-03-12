@@ -44,10 +44,7 @@ impl MelodyErrors {
         Self {
             kind,
             description: description.to_string(),
-            file: match file {
-                Some(file) => Some(file.to_path_buf()),
-                None => None,
-            },
+            file: file.map(|f| f.to_path_buf()),
         }
     }
     pub fn kind(&self) -> MelodyErrorsKind {

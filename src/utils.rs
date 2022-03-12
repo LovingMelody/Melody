@@ -1,7 +1,7 @@
-use errors::{MelodyErrors, MelodyErrorsKind};
+use crate::errors::{MelodyErrors, MelodyErrorsKind};
+use crate::song::{Playlist, Song};
 use mp3_metadata::Genre;
 use num_integer::div_mod_floor;
-use song::{Playlist, Song};
 use std::fs;
 use std::io::ErrorKind as IoErrorKind;
 use std::path::{Path, PathBuf};
@@ -176,7 +176,7 @@ pub fn genre_to_string(from: &Genre) -> String {
 /// Find  Duplicates
 /// `music_dir` - Music directory to find duplicates
 /// Returns a list of duplicates
-pub fn find_duplicates(music_dir: &Path) -> Result<Vec<PathBuf>, ()> {
+pub fn find_duplicates(music_dir: &Path) -> Vec<PathBuf> {
     fn list_occ(s: &Song, v: &[Song]) -> Vec<usize> {
         let mut occ = vec![];
         for (pos, song) in v.iter().enumerate() {
@@ -203,8 +203,8 @@ pub fn find_duplicates(music_dir: &Path) -> Result<Vec<PathBuf>, ()> {
             }
         }
         dupes.shrink_to_fit();
-        Ok(dupes.iter().map(|pos| tracks[*pos].file.clone()).collect())
+        dupes.iter().map(|pos| tracks[*pos].file.clone()).collect()
     } else {
-        Err(())
+        Vec::with_capacity(0)
     }
 }

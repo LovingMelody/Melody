@@ -1,3 +1,4 @@
+#![warn(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 // TODO: Fix Config file
 // TODO: Iterm display for album cover? (probably not)
 // TODO: Media Controls
@@ -35,12 +36,13 @@ fn generate_progress_bar(s: Song) -> ProgressBar {
             )
             .progress_chars("#>-"),
     );
-    pb.set_message(&format!(
+    let msg = format!(
         "{} - {} - {}",
         s.artist.unwrap_or_else(|| String::from("Unknown Artist")),
         s.album.unwrap_or_else(|| String::from("Unkwon Album")),
         s.title.unwrap_or_else(|| String::from("Unkown Title"))
-    ));
+    );
+    pb.set_message(msg);
     pb
 }
 

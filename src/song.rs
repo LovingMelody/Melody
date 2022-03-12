@@ -1,11 +1,11 @@
+use crate::utils::{fmt_duration, genre_to_string, list_files, supported_song};
 use std::convert::AsRef;
 use std::fmt;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-use utils::{fmt_duration, genre_to_string, list_files, supported_song};
 
-use errors::MelodyErrors;
+use crate::errors::MelodyErrors;
 use tabwriter::TabWriter;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
