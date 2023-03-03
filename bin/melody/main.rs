@@ -2,11 +2,9 @@
 // TODO: Fix Config file
 // TODO: Iterm display for album cover? (probably not)
 // TODO: Media Controls
-use indicatif;
-use melody;
+use std::env;
 use std::thread;
 use std::time::Duration;
-use std::env;
 
 use indicatif::{ProgressBar, ProgressStyle};
 
@@ -32,6 +30,7 @@ fn generate_progress_bar(s: Song) -> ProgressBar {
             .template(
                 "{spinner:.green} {msg} [{elapsed_precise}] [{bar:40.cyan/blue}] ({eta_precise})",
             )
+            .expect("Could not set progress bar template")
             .progress_chars("#>-"),
     );
     let msg = format!(

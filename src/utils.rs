@@ -164,7 +164,6 @@ pub fn add_to_library(from: &Path, to: &Path) -> Result<Option<Vec<MelodyErrors>
     ))
 }
 
-
 /// Find  Duplicates
 /// `music_dir` - Music directory to find duplicates
 /// Returns a list of duplicates
