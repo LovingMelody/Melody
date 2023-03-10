@@ -4,8 +4,8 @@ name = "melody"
 version = "0.1.6"
 license = "MIT/Apache-2.0"
 description = "terminal Audio playback client"
-repository = "https://gitlab.com/Fuzen-py/Melody"
-homepage = "https://gitlab.com/Fuzen-py/Melody"
+repository = "https://github.com/Fuzen-py/Melody"
+homepage = "https://github.com/Fuzen-py/Melody"
 edition = "2021"
 
 [[bin]]
