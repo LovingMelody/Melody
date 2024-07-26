@@ -15,14 +15,14 @@ required-features = []
 
 
 [dependencies]
-lofty = "0.14.0"
-num-integer = "0.1.45"
-tabwriter = "1.2"
-rodio = "0.17"
+lofty = "0.20"
+num-integer = "0.1"
+tabwriter = "1"
+rodio = "0.19"
 directories = "5"
 indicatif = "0.17"
 rand = "0.8"
-human-panic = "1"
+human-panic = "2"
 walkdir = "2"
 log = "0.4"
 pretty_env_logger = "0.5"
