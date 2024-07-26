@@ -27,17 +27,18 @@
 
         pkgs = import nixpkgs { inherit system overlays; };
       in {
-        packages.default = pkgs.rustPlatform.buildRustPackage rec {
+        packages.default = pkgs.rustPlatform.buildRustPackage {
           pname = "melody";
           #builtins.fromToml (builtins.readFile ./Cargo.toml).package.name;
           version = "0.1.6";
           #builtins.fromToml (builtins.readFile ./Cargo.toml).package.version;
 
           src = ./.;
+          nativeBuildInputs = [ pkgs.pkg-config ];
+          propagatedBuildInputs = with pkgs; [ clang alsaLib ];
 
-          propagatedBuildInputs = with pkgs; [ clang alsaLib pkg-config ];
+          cargoHash = "sha256-Ac1Petvc90JTPFHtW+9HvtwcDQ3Sg8rqk4Hcb/bVKhw=";
 
-          cargoSha256 = "3EF5mIVw8O/CVjU0PjZchHw4Ckbz9Ho0UM6REcWAm1c=";
         };
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [

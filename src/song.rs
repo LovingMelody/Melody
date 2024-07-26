@@ -6,7 +6,8 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use crate::errors::MelodyErrors;
-use lofty::{Accessor, AudioFile, TaggedFileExt};
+use lofty::file::{AudioFile, TaggedFileExt};
+use lofty::tag::Accessor;
 use tabwriter::TabWriter;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -88,7 +89,7 @@ impl Song {
     /// Load song from Pathbuf
     pub fn load(file: PathBuf) -> Result<Self, MelodyErrors> {
         let track: Option<u32> = None;
-        let tagged_file = lofty::Probe::open(&file)
+        let tagged_file = lofty::probe::Probe::open(&file)
             .map_err(|e| {
                 MelodyErrors::new(e.into(), "Invalid path provided", Some(file.as_path()))
             })?
