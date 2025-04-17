@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use crate::Errors;
 
 fn project_dir() -> Result<ProjectDirs, Errors> {
-    ProjectDirs::from("info", "Fuzen", "Melody").ok_or(Errors::FailedToGetAppDirectory)
+    ProjectDirs::from("info", "LovingMelody", "Melody").ok_or(Errors::FailedToGetAppDirectory)
 }
 
 #[derive(Debug)]
