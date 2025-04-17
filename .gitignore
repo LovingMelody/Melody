@@ -2,3 +2,5 @@
 /target/
 **/*.rs.bk
 *(conflicted*).rsexpiremtnal/
+result
+result*

@@ -1,12 +1,12 @@
 [package]
 authors = ["Melody <lovingmelody.io>"]
 name = "melody"
-version = "0.1.8"
+version = "0.1.9"
 license = "MIT/Apache-2.0"
 description = "terminal Audio playback client"
-repository = "https://github.com/Fuzen-py/Melody"
-homepage = "https://github.com/Fuzen-py/Melody"
-edition = "2021"
+repository = "https://github.com/LovingMelody/Melody"
+homepage = "https://github.com/LovingMelody/Melody"
+edition = "2024"
 
 [[bin]]
 name = "melody"
@@ -15,13 +15,13 @@ required-features = []
 
 
 [dependencies]
-lofty = "0.20"
+lofty = "0.22"
 num-integer = "0.1"
 tabwriter = "1"
-rodio = "0.19"
-directories = "5"
+rodio = "0.20"
+directories = "6"
 indicatif = "0.17"
-rand = "0.8"
+rand = "0.9"
 human-panic = "2"
 walkdir = "2"
 log = "0.4"

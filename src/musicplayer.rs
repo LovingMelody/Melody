@@ -1,7 +1,7 @@
 use crate::errors::{MelodyErrors, MelodyErrorsKind};
 use crate::song::{Playlist, Song};
 use crate::utils::fmt_duration;
-use rand::{seq::SliceRandom, thread_rng};
+use rand::{rng, seq::SliceRandom};
 use std::fmt;
 use std::fs::File;
 use std::io::{BufReader, Write};
@@ -82,7 +82,7 @@ impl MusicPlayer {
 
     /// Shuffle the order of the playlist
     pub fn shuffle(&mut self) {
-        self.playlist.shuffle(&mut thread_rng());
+        self.playlist.shuffle(&mut rng());
     }
 
     /// Plays the first song in the Queue if any

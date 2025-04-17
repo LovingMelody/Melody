@@ -150,7 +150,7 @@ pub fn add_to_library(from: &Path, to: &Path) -> Result<Option<Vec<MelodyErrors>
                 FailedToFindParent,
                 "could not find parent of `from`.",
                 None,
-            ))
+            ));
         }
     };
     let files = list_files(from.to_path_buf());

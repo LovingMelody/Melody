@@ -45,9 +45,6 @@ fn generate_progress_bar(s: Song) -> ProgressBar {
 
 fn main() {
     human_panic::setup_panic!();
-    if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "melody=error")
-    }
     pretty_env_logger::init();
     play_test().unwrap()
 }
