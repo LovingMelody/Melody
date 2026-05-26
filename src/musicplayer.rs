@@ -43,11 +43,11 @@ impl fmt::Display for MusicPlayerStatus {
 pub struct MusicPlayer {
     // Stream must remain for audio to play
     #[allow(dead_code)]
-    stream: rodio::OutputStream,
+    stream: rodio::MixerDeviceSink,
     /// Songs in Queue
     playlist: Vec<Song>,
     /// Audio controller
-    sink: rodio::Sink,
+    sink: rodio::Player,
     /// Current song
     current: Option<Song>,
     /// Previus song
@@ -62,15 +62,15 @@ impl MusicPlayer {
     /// Cronstructs a new MusicPlayer
     pub fn new(playlist: Playlist) -> Self {
         // Audio endpoint (EX: Alsa)
-        let (stream, stream_handle) =
-            rodio::OutputStream::try_default().expect("Failed to find default music endpoint");
+        let stream = rodio::DeviceSinkBuilder::open_default_sink()
+            .expect("Failed to open a sink for the default device");
 
         MusicPlayer {
+            sink: rodio::Player::connect_new(stream.mixer()),
             stream,
             // Remove all unsuported songs
             playlist: playlist.tracks, //c![song, for song in playlist.tracks, if supported_song(song.file())],
             // Create audio controller
-            sink: rodio::Sink::try_new(&stream_handle).unwrap(),
             current: None,
             previous: None,
             playing_time: (

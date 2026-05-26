@@ -154,14 +154,7 @@ pub fn add_to_library(from: &Path, to: &Path) -> Result<Option<Vec<MelodyErrors>
         }
     };
     let files = list_files(from.to_path_buf());
-    Ok(Some(
-        files
-            .filter_map(|f| match Song::load(f) {
-                Ok(_) => None,
-                Err(e) => Some(e),
-            })
-            .collect(),
-    ))
+    Ok(Some(files.filter_map(|f| Song::load(f).err()).collect()))
 }
 
 /// Find  Duplicates

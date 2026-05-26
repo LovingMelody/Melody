@@ -29,12 +29,12 @@ impl Settings {
             let mut volume: f32 = 0.25;
             let mut prioritize_cwd: bool = false;
             let mut music: Option<PathBuf> = None;
-            for line in BufReader::new(file).lines().flatten() {
+            for line in BufReader::new(file).lines().map_while(Result::ok) {
                 if line.starts_with("volume=") {
-                    if let Some(v) = line.get(7..) {
-                        if let Ok(v) = v.parse() {
-                            volume = v;
-                        }
+                    if let Some(v) = line.get(7..)
+                        && let Ok(v) = v.parse()
+                    {
+                        volume = v;
                     }
                 } else if line.starts_with("music=") {
                     if let Some(v) = line.get(6..) {
@@ -43,12 +43,11 @@ impl Settings {
                             music = Some(p)
                         }
                     }
-                } else if line.starts_with("prioritize_cwd") {
-                    if let Some(v) = line.get(15..) {
-                        if let Ok(v) = v.parse() {
-                            prioritize_cwd = v;
-                        }
-                    }
+                } else if line.starts_with("prioritize_cwd")
+                    && let Some(v) = line.get(15..)
+                    && let Ok(v) = v.parse()
+                {
+                    prioritize_cwd = v;
                 }
             }
             let music = match music {
@@ -67,10 +66,10 @@ impl Settings {
                 music,
             }
         };
-        if let Ok(v) = ::std::env::var("MELODY_VOLUME") {
-            if let Ok(v) = v.parse() {
-                settings.volume = v;
-            }
+        if let Ok(v) = ::std::env::var("MELODY_VOLUME")
+            && let Ok(v) = v.parse()
+        {
+            settings.volume = v;
         }
         if let Ok(v) = ::std::env::var("MELODY_MUSIC") {
             let p = PathBuf::from(v);
@@ -78,10 +77,10 @@ impl Settings {
                 settings.music = p;
             }
         }
-        if let Ok(v) = ::std::env::var("MELODY_PRIORITIZE_CWD") {
-            if let Ok(v) = v.parse() {
-                settings.prioritize_cwd = v;
-            }
+        if let Ok(v) = ::std::env::var("MELODY_PRIORITIZE_CWD")
+            && let Ok(v) = v.parse()
+        {
+            settings.prioritize_cwd = v;
         }
         Ok(settings)
     }

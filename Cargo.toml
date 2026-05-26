@@ -15,13 +15,13 @@ required-features = []
 
 
 [dependencies]
-lofty = "0.22"
+lofty = "0.24"
 num-integer = "0.1"
 tabwriter = "1"
-rodio = "0.20"
+rodio = "0.22"
 directories = "6"
 indicatif = "0.18"
-rand = "0.9"
+rand = "0.10"
 human-panic = "2"
 walkdir = "2"
 log = "0.4"
